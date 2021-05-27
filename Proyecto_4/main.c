@@ -6,14 +6,16 @@
  *Control de Botones y 7 segmentos                                    *
  **********************************************************************
  *                              Librerias                             *
- /**********************************************************************/
+ **********************************************************************/
 #include <stdint.h>
 #include <stdbool.h>
 #include <inc/hw_memmap.h>
+#include "driverlib/pin_map.h"
 #include <inc/hw_types.h>
 #include <inc/hw_gpio.h>
 #include <driverlib/sysctl.h>
 #include <driverlib/gpio.h>
+#include "driverlib/uart.h"
 /**********************************************************************
  *                      Prototipo de funciones                        *
  **********************************************************************/
@@ -47,6 +49,9 @@ int main(void)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
     /**********************************************************************/
+    /*Habilita el UART5*/
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_UART5);
+    /**********************************************************************/
     /*Se desbloquea PD7 */
     HWREG(GPIO_PORTD_BASE+GPIO_O_LOCK) = GPIO_LOCK_KEY;
     HWREG(GPIO_PORTD_BASE+GPIO_O_CR) |= GPIO_PIN_7;
@@ -59,9 +64,19 @@ int main(void)
     /**********************************************************************/
     /*Se config. los pines de los Leds*/
     GPIOPinTypeGPIOOutput( GPIO_PORTA_BASE,
-                          GPIO_PIN_7 | GPIO_PIN_6 | GPIO_PIN_5 | GPIO_PIN_4);
+    GPIO_PIN_7 | GPIO_PIN_6 | GPIO_PIN_5 | GPIO_PIN_4);
     GPIOPinTypeGPIOOutput( GPIO_PORTE_BASE,
-                          GPIO_PIN_3 | GPIO_PIN_2 | GPIO_PIN_1 | GPIO_PIN_0);
+    GPIO_PIN_3 | GPIO_PIN_2 | GPIO_PIN_1 | GPIO_PIN_0);
+    /**********************************************************************/
+    /*Se config. el UART5 y sus pines*/
+    GPIOPinTypeUART(GPIO_PORTE_BASE, GPIO_PIN_4 | GPIO_PIN_5);
+    GPIOPinConfigure(GPIO_PE4_U5RX);
+    GPIOPinConfigure(GPIO_PE5_U5TX);
+    UARTConfigSetExpClk(
+            UART5_BASE, SysCtlClockGet(), 115200,
+            (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE));
+    UARTFIFOLevelSet(UART5_BASE, UART_FIFO_TX1_8, UART_FIFO_RX1_8);
+    UARTEnable(UART5_BASE);
     /**********************************************************************/
     /*Se config. los pines de los deep switch*/
     GPIOPinTypeGPIOInput(GPIO_PORTA_BASE, GPIO_PIN_3 | GPIO_PIN_2);
@@ -166,5 +181,25 @@ int main(void)
         }
         /*--------------------------------------------------------------------*/
         /**********************************************************************/
+        /*Envio de datos via UART5*/
+        /**********************************************************************/
+        /* Se suma el total de parkeos disponibles*/
+        uint8_t TotalParkDisp = DispParqueos[0] + DispParqueos[1]
+                + DispParqueos[2] + DispParqueos[3];
+        /*--------------------------------------------------------------------*/
+        /*Se crea un arreglo de chars para enviar los datos via UART*/
+        char data_send[] = { DispParqueos[0] + 48, DispParqueos[1] + 48,
+                             DispParqueos[2] + 48, DispParqueos[3] + 48,
+                             TotalParkDisp + 48, '\n' };
+        /*--------------------------------------------------------------------*/
+        /*Rutina que manda los valores del arreglo chars, separando los datos por comas y terminando con un fin de linea*/
+        uint8_t i;
+        for (i = 0; i < 255 && data_send[i] != '\n'; i++)
+        {
+            UARTCharPut(UART5_BASE, data_send[i]);
+            UARTCharPut(UART5_BASE, ',');
+        }
+        UARTCharPut(UART5_BASE, '\n');
+        /*--------------------------------------------------------------------*/
     }
 }
