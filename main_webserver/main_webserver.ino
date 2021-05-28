@@ -14,8 +14,8 @@
 // Variables globales
 //************************************************************************************************
 // SSID & Password
-const char* ssid = "Tu";  // Enter your SSID here
-const char* password = "clashmundoll";  //Enter your Password here
+const char* ssid = "DESKTOP-DTC5LCT 7513";  // Enter your SSID here
+const char* password = "3s5}5C34";  //Enter your Password here
 
 WebServer server(80);  // Object of WebServer(HTTP port, 80 is defult)
 
@@ -31,7 +31,7 @@ String estadopark1;
 String estadopark2;
 String estadopark3;
 String estadopark4;
-
+uint8_t total;
 uint8_t LED1pin = 2;
 bool LED1status = LOW;
 //************************************************************************************************
@@ -89,8 +89,9 @@ void loop() {
       //se limpia la cadena para la proxima lectura
       datos = "";
     }
-    if (parqueo1 == "1")estadopark1 = "Disponible";
-    else estadopark1 = "Ocupado";
+    //Rutinas con las cuales se define si la TivaC envia si el parqueo esta o no ocupado
+    if (parqueo1 == "1")estadopark1 = "Disponible"; //Si es uno el parqueo esta disponible 
+    else estadopark1 = "Ocupado";//Sera 0 si el parque esta ocupado
     if (parqueo2 == "1")estadopark2 = "Disponible";
     else estadopark2 = "Ocupado";
     if (parqueo3 == "1")estadopark3 = "Disponible";
@@ -114,7 +115,10 @@ String SendHTML(uint8_t led1stat) {
   String ptr = "<!DOCTYPE html> <html>\n";
   ptr += "<title> Proyecto4 </title>\n";
   ptr += "<title>LED Control</title>\n";
-  ptr +=  "<script>\n"
+  ptr += "<head>\n";
+  ptr += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
+          "<script src=\"https://kit.fontawesome.com/a076d05399.js\" crossorigin=\"anonymous\"></script>\n"
+          "<script>\n"
           "<!--\n"
           "function timedRefresh(timeoutPeriod) {\n"
           "\tsetTimeout(\"location.reload(true);\",timeoutPeriod);\n"
@@ -130,13 +134,14 @@ String SendHTML(uint8_t led1stat) {
   ptr += "table.GeneratedTable thead {background-color: #ff0000;}\n";
   ptr += "</style>\n";
   ptr += "<table class= \"GeneratedTable\">\n";
-  ptr += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n";
+ // ptr += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n";
   ptr += "<style>h1{text-align:center;font-family:Times, serif;color:#000000;background-color:#ffffff;}\n";
   ptr += "p {text-align:center;font-family:Times, serif;font-size:12px;font-style:normal;font-weight:normal;color:#000000;background-color:#ffffff;}\n";
   ptr += "</style>\n";
   ptr += "</head>\n";
-  ptr += "<h1>Parqueo-matic</h1>\n";
-  ptr += "<h3>Elaborado por Daniel Mundo</h3>\n";
+  ptr += "<h1>Parqueo-matic &#128664</h1>\n";
+  ptr += "<p>Elaborado por Daniel Mundo   </p>\n";
+  ptr += "<i class=\"fas fa-car\" style=\"font-size:60px;color:red;\"></i>\n";
   ptr += "<thead>\n";
   ptr += "<tr>\n";
   ptr += "<th>No. Parqueo</th>\n";
@@ -147,27 +152,33 @@ String SendHTML(uint8_t led1stat) {
 
   ptr += "<tr>\n";
   ptr += "<td>Parqueo 1</td>\n";
-  ptr += "<td>" + estadopark1 + "</td>\n";
+  if (parqueo1 == "1")ptr += "<td>" + estadopark1 + "&#128994;</td>\n";
+  else ptr += "<td>" + estadopark1 + " &#128664;</td>\n";
   ptr += "</tr>\n";
 
   ptr += "<tr>\n";
   ptr += "<td>Parqueo 2</td>\n";
-  ptr += "<td>" + estadopark2 + "</td>\n";
+  if (parqueo2 == "1")ptr += "<td>" + estadopark2 + "&#128994;</td>\n";
+  else ptr += "<td>" + estadopark2 + " &#128664; </td>\n";
   ptr += "</tr>\n";
 
   ptr += "<tr>\n";
   ptr += "<td>Parqueo 3</td>\n";
-  ptr += "<td>" + estadopark3 + "</td>\n";
+  if (parqueo3 == "1")ptr += "<td>" + estadopark3 + " &#128994; </td>\n";
+  else ptr += "<td>" + estadopark3 + " &#128664; </td>\n";
   ptr += "</tr>\n";
 
   ptr += "<tr>\n";
   ptr += "<td>Parqueo 4</td>\n";
-  ptr += "<td>" + estadopark4 + "</td>\n";
+  if (parqueo4 == "1")ptr += "<td>" + estadopark4 + " &#128994;</td>\n";
+  else ptr += "<td>" + estadopark4 + " &#128664; </td>\n";
   ptr += "</tr>\n";
 
   ptr += "<tr>\n";
   ptr += "<td>Total de Parqueos</td>\n";
-  ptr += "<td>"+totalpark+"</td>\n";
+  if (totalpark == "0,")ptr += "<td>" + totalpark + " &#128664;</td>\n";
+  else ptr += "<td>" + totalpark  + " &#128994; </td>\n";
+//  ptr += "<td>"+  +"</td>\n";
   ptr += "</tr>\n";
   ptr += "</tbody>\n";
 
